@@ -1,0 +1,7 @@
+#App {
+    display: grid;
+    justify-content: center;
+    place-items: center;
+    height: 100vh;
+    background-color: black;
+}
