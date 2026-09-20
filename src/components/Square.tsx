@@ -5,16 +5,14 @@ interface Props {
     number: number;
 }
 
-export default function Square({number, image}: Props) {
-    if(number % 2 === 0) {
-        return (<div className="black-square">
-            <img src={image} alt="" />
+export default function Square({image, number}: Props) {
+    if (number % 2 === 0) {
+        return <div className="square black-square">
+            {image && <div style ={{backgroundImage: `url(${image})`}} className="chess-piece"></div>}
         </div>
-        );
     } else {
-        return (<div className="white-square">
-            <img src={image} alt="" />
+        return <div className="square white-square">
+            {image &&<div style ={{backgroundImage: `url(${image})`}} className="chess-piece"></div>}
         </div>
-        );
     }
 }
