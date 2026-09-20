@@ -1,5 +1,5 @@
 import './Chessboard.css';
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import Square from '../Squares/Square';
 
 const verticalAxis = ["1", "2", "3", "4", "5", "6", "7", "8"];
@@ -9,45 +9,49 @@ interface Piece {
   image: string; x: number; y: number;
 }
 
-const pieces: Piece[] = [];
+const initialBoardState: Piece[] = []
 
 for(let p = 0; p < 2; p++) {
   const type = (p === 0) ? "black" : "white";
   const verticalPosition = p === 0 ? 7 : 0;
-  pieces.push({image: `assets/images/rook_${type}.png`, x: 0, y: verticalPosition});
-  pieces.push({image: `assets/images/rook_${type}.png`, x: 7, y: verticalPosition});
-  pieces.push({image: `assets/images/knight_${type}.png`, x: 1, y: verticalPosition});
-  pieces.push({image: `assets/images/knight_${type}.png`, x: 6, y: verticalPosition});
-  pieces.push({image: `assets/images/bishop_${type}.png`, x: 2, y: verticalPosition});
-  pieces.push({image: `assets/images/bishop_${type}.png`, x: 5, y: verticalPosition});
-  pieces.push({image: `assets/images/queen_${type}.png`, x: 3, y: verticalPosition});
-  pieces.push({image: `assets/images/king_${type}.png`, x: 4, y: verticalPosition});
+  initialBoardState.push({image: `assets/images/rook_${type}.png`, x: 0, y: verticalPosition});
+  initialBoardState.push({image: `assets/images/rook_${type}.png`, x: 7, y: verticalPosition});
+  initialBoardState.push({image: `assets/images/knight_${type}.png`, x: 1, y: verticalPosition});
+  initialBoardState.push({image: `assets/images/knight_${type}.png`, x: 6, y: verticalPosition});
+  initialBoardState.push({image: `assets/images/bishop_${type}.png`, x: 2, y: verticalPosition});
+  initialBoardState.push({image: `assets/images/bishop_${type}.png`, x: 5, y: verticalPosition});
+  initialBoardState.push({image: `assets/images/queen_${type}.png`, x: 3, y: verticalPosition});
+  initialBoardState.push({image: `assets/images/king_${type}.png`, x: 4, y: verticalPosition});
 }
 
 for(let i = 0; i < 8; i++) {
-  pieces.push({image: "assets/images/pawn_black.png", x: i, y: 6});
+  initialBoardState.push({image: "assets/images/pawn_black.png", x: i, y: 6});
 }
 
 for(let i = 0; i < 8; i++) {
-  pieces.push({image: "assets/images/pawn_white.png", x: i, y: 1});
+  initialBoardState.push({image: "assets/images/pawn_white.png", x: i, y: 1});
 }
 
 export default function Chessboard() {
+  const [activePiece, setActivePiece] = useState<HTMLElement | null>(null);
+  const [gridX, setGridX] = useState(0);
+  const [gridY, setGridY] = useState(0);
+  const [pieces, setPieces] = useState<Piece[]>(initialBoardState);
   const refChessboard = useRef<HTMLDivElement>(null);
-  let board = [];
-
-  let activePiece: HTMLElement | null = null;
 
 function grabPiece(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
   const element = e.target as HTMLElement;
-  if(element.classList.contains("chess-piece")) {
+  const chessboard = refChessboard.current;
+  if(element.classList.contains("chess-piece") && chessboard) {
+    setGridX(Math.floor((e.clientX - chessboard.offsetLeft) / 100));
+    setGridY(Math.abs(Math.ceil((e.clientY - chessboard.offsetTop - 800) / 100)));
     const x = e.clientX - 50;
     const y = e.clientY - 50;
     element.style.position = "absolute";
     element.style.left = `${x - 40}px`;
     element.style.top = `${y - 40}px`;
 
-    activePiece = element;
+    setActivePiece(element);
   }
 }
 
@@ -91,10 +95,23 @@ function movePiece(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
 }
 
 function dropPiece(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
-  if(activePiece) {
-    activePiece = null;
+  const chessboard = refChessboard.current
+  if(activePiece && chessboard) {
+    setPieces((value) => {
+      const pieces =value.map(p => {
+        if(p.x == gridX && p.y == gridY) {
+          p.x = gridX;
+          p.y = gridY;
+        }
+        return p;
+      })
+      return pieces;
+    });
+    setActivePiece(null);
   }
 }
+
+let board = [];
 
   for(let i = verticalAxis.length - 1; i >= 0; i--) {
     for(let j = 0; j < horizontalAxis.length; j++) {
