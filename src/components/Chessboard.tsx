@@ -6,7 +6,7 @@ import Referee from '../Referee/Referee';
 const verticalAxis = ["1", "2", "3", "4", "5", "6", "7", "8"];
 const horizontalAxis = ["a", "b", "c", "d", "e", "f", "g", "h"];
 
-interface Piece {
+export interface Piece {
   image: string; x: number; y: number; type: PieceType; team: TeamType;
 }
 
