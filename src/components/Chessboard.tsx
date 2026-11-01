@@ -7,21 +7,15 @@ const verticalAxis = ["1", "2", "3", "4", "5", "6", "7", "8"];
 const horizontalAxis = ["a", "b", "c", "d", "e", "f", "g", "h"];
 
 export interface Piece {
-  image: string; x: number; y: number; type: PieceType; team: TeamType;
+  image: string; x: number; y: number; type: PieceType; team: TeamType, enPassant?: boolean;
 }
 
 export enum TeamType {
-  OPPONENT,
-  PLAYER
+  OPPONENT,PLAYER
 }
 
 export enum PieceType {
-  PAWN,
-  BISHOP,
-  KNIGHT,
-  ROOK,
-  QUEEN,
-  KING
+  PAWN,BISHOP,KNIGHT,ROOK,QUEEN,KING
 }
 
 const initialBoardState: Piece[] = []
@@ -107,93 +101,143 @@ export default function Chessboard() {
   const refChessboard = useRef<HTMLDivElement>(null);
   const referee = new Referee();
 
-function grabPiece(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
-  const element = e.target as HTMLElement;
-  const chessboard = refChessboard.current;
-  if(element.classList.contains("chess-piece") && chessboard) {
-    setGridX(Math.floor((e.clientX - chessboard.offsetLeft) / 100));
-    setGridY(Math.abs(Math.ceil((e.clientY - chessboard.offsetTop - 800) / 100)));
-    const x = e.clientX - 50;
-    const y = e.clientY - 50;
-    element.style.position = "absolute";
-    element.style.left = `${x - 40}px`;
-    element.style.top = `${y - 40}px`;
 
-    setActivePiece(element);
-  }
-}
+  function grabPiece(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+    const element = e.target as HTMLElement;
+    const chessboard = refChessboard.current;
+    if(element.classList.contains("chess-piece") && chessboard) {
+      setGridX(Math.floor((e.clientX - chessboard.offsetLeft) / 100));
+      setGridY(Math.abs(Math.ceil((e.clientY - chessboard.offsetTop - 800) / 100)));
+      const x = e.clientX - 50;
+      const y = e.clientY - 50;
+      element.style.position = "absolute";
+      element.style.left = `${x - 40}px`;
+      element.style.top = `${y - 40}px`;
 
-function movePiece(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
-  const chessboard = refChessboard.current;
-  if(activePiece && chessboard) {
-    const minX = chessboard.style.offsetLeft -25;
-    const minY = chessboard.style.offsetTop - 25;
-    const maxX = chessboard.offsetLeft + chessboard.offsetWidth - 25;
-    const maxY = chessboard.offsetTop + chessboard.offsetHeight - 25;
-    const x = e.clientX - 50;
-    const y = e.clientY - 50;
-    activePiece.style.position = "absolute";
-
-    // Ensure the piece stays within the bounds of the chessboard
-    if(x < minX) {
-      activePiece.style.left = `${minX}px`;
-    } 
-    // Check if the piece is beyond the right edge of the chessboard
-    else if(x > maxX) {
-      activePiece.style.left = `${maxX}px`;
-    }
-    // If the piece is within the bounds of the chessboard, set its position to the mouse coordinates
-    else {
-      activePiece.style.left = `${x}px`;
-    }
-
-    // Ensure the piece stays within the bounds of the chessboard
-    if(y < minY) {
-      activePiece.style.top = `${minY}px`;
-    } 
-    // Check if the piece is beyond the bottom edge of the chessboard
-    else if(y > maxY) {
-      activePiece.style.top = `${maxY}px`;
-    }
-    // If the piece is within the bounds of the chessboard, set its position to the mouse coordinates
-    else {
-      activePiece.style.top = `${y}px`;
+      setActivePiece(element);
     }
   }
-}
 
-function dropPiece(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
-  const chessboard = refChessboard.current
-  if(activePiece && chessboard) {
-    const x = Math.floor((e.clientX - chessboard.offsetLeft) / 100);
-    const y = Math.abs(Math.ceil((e.clientY - chessboard.offsetTop - 800) / 100));
-    
-    // Check if the move is valid using the Referee class
-    setPieces((value) => {
-      const pieces =value.map(p => {
-        if(p.x == gridX && p.y == gridY) {
-          const validMove =referee.isInvalidMove(gridX, gridY, x, y, p.type, p.team);
+  function movePiece(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+    const chessboard = refChessboard.current;
+      if(activePiece && chessboard) {
+      const minX = chessboard.style.offsetLeft -25;
+      const minY = chessboard.style.offsetTop - 25;
+      const maxX = chessboard.offsetLeft + chessboard.offsetWidth - 25;
+      const maxY = chessboard.offsetTop + chessboard.offsetHeight - 25;
+      const x = e.clientX - 50;
+      const y = e.clientY - 50;
+      activePiece.style.position = "absolute";
 
-          if(validMove) {
-            p.x = gridX;
-            p.y = gridY;
-          }
-          else {
-            activePiece.style.position = "relative";
-            activePiece.style.removeProperty("top");
-            activePiece.style.removeProperty("left");
+      // Ensure the piece stays within the bounds of the chessboard
+      if(x < minX) {
+        activePiece.style.left = `${minX}px`;
+      } 
+      // Check if the piece is beyond the right edge of the chessboard
+      else if(x > maxX) {
+        activePiece.style.left = `${maxX}px`;
+      }
+      // If the piece is within the bounds of the chessboard, set its position to the mouse coordinates
+      else {
+        activePiece.style.left = `${x}px`;
+      }
 
-          }
+      // Ensure the piece stays within the bounds of the chessboard
+      if(y < minY) {
+        activePiece.style.top = `${minY}px`;
+      } 
+      // Check if the piece is beyond the bottom edge of the chessboard
+      else if(y > maxY) {
+        activePiece.style.top = `${maxY}px`;
+      }
+      // If the piece is within the bounds of the chessboard, set its position to the mouse coordinates
+     else {
+        activePiece.style.top = `${y}px`;
+      }
+    }
+  }
+
+  function dropPiece(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+    const chessboard = refChessboard.current
+      if(activePiece && chessboard) {
+        const x = Math.floor((e.clientX - chessboard.offsetLeft) / 100);
+        const y = Math.abs(Math.ceil((e.clientY - chessboard.offsetTop - 800) / 100));
+
+      const currentPiece = pieces.find(p => p.x === gridX && p.y === gridY);
+      const attackedPiece = pieces.find(p => p.x === x && p.y === y);
+
+      if(currentPiece) {
+        const validMove = referee.isValidMove(
+          gridX, 
+          gridY, 
+          x, 
+          y, 
+          currentPiece.type, 
+          currentPiece.team!, 
+          pieces
+        );
+
+        const pawnDirection = currentPiece.team === TeamType.PLAYER ? 1 : -1;
+
+        const isEnPassantMove = referee.isEnPassantMove(
+          gridX, gridY, pieces, currentPiece.type, currentPiece.team!
+        );
+
+        setPieces(updatedPieces);
+
+        if(isEnPassantMove) {
+          const updatedPieces = pieces.reduce((results, piece) => {
+            if(piece.x === gridX && piece.y === gridY){
+              piece.enPassant = false;
+              piece.x = x;
+              piece.y = y;
+              results.push(piece);
+            } else if(!(piece.x === x && piece.y === y -pawnDirection)) {
+              if(piece.type === PieceType.PAWN) {
+                piece.enPassant = false;
+              }
+              results.push(piece);
+            }
+
+            return results;
+          }, [] as Piece[]);
+
+        } else if(validMove) {
+          const updatedPieces = pieces.reduce((results, piece) => {
+            if(piece.x === gridX && piece.y === gridY) {
+              if(Math.abs(gridY - y) === 2 && currentPiece.type === PieceType.PAWN) {
+                piece.enPassant = true;
+              } else {
+                piece.enPassant = false;
+              }
+                piece.x = x;
+                piece.y = y;
+                results.push(piece);
+            } else if(!(piece.x === x && piece.y === y)) {
+              if(piece.type === PieceType.PAWN) {
+                piece.enPassant = false;
+              }
+              results.push(piece);
+            }
+
+            return results;
+          }, [] as Piece[]);
+
+        setPieces(updatedPieces);
+
+      } else {
+          // Resets The Piece position if the move is invalid
+          // And if a piece is attacked, it will not reset the position of the piece
+          activePiece.style.position = "relative";
+          activePiece.style.removeProperty("top");
+          activePiece.style.removeProperty("left");
         }
-        return p;
-      })
-      return pieces;
-    });
-    setActivePiece(null);
+      }
+      setActivePiece(null);
+    }
   }
-}
 
-let board = [];
+  let board = [];
 
   for(let i = verticalAxis.length - 1; i >= 0; i--) {
     for(let j = 0; j < horizontalAxis.length; j++) {
@@ -211,6 +255,7 @@ let board = [];
   }
 
   return (
+    <>
     <div onMouseMove={(e) => movePiece(e)} 
       onMouseDown={(e) => grabPiece(e)} 
       onMouseUp={(e) => dropPiece(e)}
@@ -218,5 +263,6 @@ let board = [];
       ref={refChessboard}>
       {board}
     </div>
+    </>
   );
 }
