@@ -1,11 +1,10 @@
-import { PieceType, TeamType, Piece} from "../Chessboard/Chessboard";
+import { PieceType, TeamType, Piece, Position } from "../../Contants";
 
 export default class Referee {
     titleOccupied(x: number, y: number, boardState: Piece[]): boolean {
 
-        const piece = boardState.find(p => p.x === x && p.y === y);
+        const piece = boardState.find(p => p.position.x === x && p.position.y === y);
 
-        return
         if(piece) {
             return true;
         } else {
@@ -13,8 +12,8 @@ export default class Referee {
         }
     }
 
-    TitleIsOccupiedByOpponent(x: number, y: number, team: TeamType, boardState: Piece[]): boolean {
-        const piece = boardState.find(p => p.x === x && p.y === y);
+    titleIsOccupiedByOpponent(x: number, y: number, team: TeamType, boardState: Piece[]): boolean {
+        const piece = boardState.find(p => p.position.x === x && p.position.y === y);
         if(piece) {
             return true;
         }
@@ -24,10 +23,8 @@ export default class Referee {
     }
 
     isEnPassantMove(        
-        px: number, 
-        py: number, 
-        x: number, 
-        y: number, 
+        initialPosition: Position, 
+        desiredPosition: Position,
         type: PieceType, 
         team: TeamType,
         boardState: Piece[]) {
@@ -35,9 +32,11 @@ export default class Referee {
         const pawnDirection = (team === TeamType.PLAYER) ? 1 : -1;
 
         if(type === PieceType.PAWN) {
-            if((x -px === -1 || x - px === 1) && y - py === 1 * pawnDirection) {
+            if((desiredPosition.x - initialPosition.x === -1 || desiredPosition.x - initialPosition.x === 1) && desiredPosition.y - initialPosition.y === pawnDirection) {
                 const piece = boardState.find(
-                    p => p.x === x && p.y === y + pawnDirection && p.enPassant
+                    (p) => p.position.x === desiredPosition.x && 
+                    p.position.y === desiredPosition.y - pawnDirection && 
+                    p.enPassant
                 );
 
                 if(piece) {
@@ -50,10 +49,8 @@ export default class Referee {
     }
 
     isValidMove(
-        px: number, 
-        py: number, 
-        x: number, 
-        y: number, 
+        initialPosition: Position, 
+        desiredPosition: Position,
         type: PieceType, 
         team: TeamType,
         boardState: Piece[]
@@ -63,24 +60,29 @@ export default class Referee {
             const pawnDirection = (team === TeamType.PLAYER) ? 1 : -1;
 
             // Movement Logic for Pawn
-            if(px === x &&py === specialRow && y - py === 2 * pawnDirection) {
-               if(!this.titleOccupied(x, y, boardState) && !this.titleOccupied(x, y - pawnDirection, boardState)) {
+            if(initialPosition.x === desiredPosition.x && initialPosition.y === specialRow && desiredPosition.y - initialPosition.y === 2 * pawnDirection) {
+               if(
+                !this.titleOccupied(desiredPosition.x, desiredPosition.y, boardState) && 
+                !this.titleOccupied(desiredPosition.x, desiredPosition.y - pawnDirection, boardState)) {
                     return true;
                 }
-            } else if(px === x && y - py === 1 * pawnDirection) {
-                if(!this.titleOccupied(x, y, boardState)) {
+            } else if(initialPosition.x === desiredPosition.x && desiredPosition.y - initialPosition.y === 1 * pawnDirection) {
+                if(!this.titleOccupied(desiredPosition.x, desiredPosition.y, boardState)) {
                     return true;
                 }
             }
             // Capture Logic for Pawn
-            else if(x -px === -1 && y - py === 1 * pawnDirection) {
+            else if(desiredPosition.x -initialPosition.x === -1 && desiredPosition.y - initialPosition.y === 1 * pawnDirection) {
                 // Attack In Upper Left Diagonal
-                if(this.TitleIsOccupiedByOpponent(x, y, team, boardState)) {
+                if(this.titleIsOccupiedByOpponent(desiredPosition.x, desiredPosition.y, team, boardState)) {
                     return true;
                 }
-            } else if(x - px === 1 && y - py === 1 * pawnDirection) {
+            } else if(desiredPosition.x - initialPosition.x === 1 && desiredPosition.y - initialPosition.y === 1 * pawnDirection) {
                 // Attack In Upper or Bottom Right Diagonal
-                if(this.TitleIsOccupiedByOpponent(x, y, team, boardState)) {
+                if(this.titleIsOccupiedByOpponent(desiredPosition.x, 
+                    desiredPosition.y, 
+                    team, 
+                    boardState)) {
                     return true;
                 }
             }      
